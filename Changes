@@ -1,0 +1,9 @@
+Revision history for Config-Context
+
+0.05    2005-Apr-24
+        - First internal version, based on Config::General::Match 0.04
+        - added Config::Scoped support
+        - added caching features from CGI::Application::Plugin::Config::General
+        - added XML::Simple support
+        - modified test suite to support multiple drivers
+
