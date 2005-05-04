@@ -5,9 +5,6 @@ use strict;
 use Carp;
 use Cwd;
 
-use XML::Simple;
-use XML::SAX;
-use XML::Filter::XInclude;
 use Hash::Merge ();
 
 =head1 NAME
@@ -86,11 +83,12 @@ files is C<< <opt> >>.  For instance:
 If you change this to some other element, then you must specify the
 C<RootName> parameter in C<driver_options>:
 
+    # Change the name of the root block to <Config>..</Config>
     my $conf = Config::Context->new(
         driver => 'XMLSimple',
         driver_options => {
            XMLSimple = > {
-               RootName  => 'config',
+               RootName  => 'Config',
            },
         },
     );
@@ -221,6 +219,7 @@ sub new {
 
     require XML::Simple;
     require XML::Filter::XInclude;
+    require XML::SAX;
 
     my %driver_opts = %{ $args{'options'}{'XMLSimple'} || {} };
 
@@ -229,25 +228,16 @@ sub new {
     #    ForceArray => qr/^(?:(?:Location)|(?:LocationMatch))$/i
 
     my $match_sections = $args{'match_sections'} || [];
-
-    my @regexes;
-    foreach my $section (@$match_sections) {
-        my $quoted = quotemeta($section->{'name'});
-        push @regexes, qr/(?:$quoted)/;
-    }
-    my $force_array_regex = join '|', @regexes;
-
-    $force_array_regex = qr/^(?:$force_array_regex)$/i;
+    my @force_array    = map { $_->{'name'} } @$match_sections;
 
     my $self = {};
 
     if ($args{'lower_case_names'}) {
-        croak "Lower Case Names not supported with XML::Simple driver";
+        carp "Lower Case Names not supported with XML::Simple driver";
     }
-
     $self->{'root_key'}         = $driver_opts{'RootName'} || 'opt';
 
-    my $simple = XML::Simple->new(ForceArray => $force_array_regex);
+    my $simple = XML::Simple->new(ForceArray => \@force_array, %driver_opts);
     my $filter = XML::Filter::XInclude::RememberFiles->new(Handler => $simple);
     my $parser = XML::SAX::ParserFactory->parser(Handler => $filter);
 
@@ -294,7 +284,7 @@ sub parse {
 
     my $rootkey = $self->{'root_name'} || 'opt';
 
-    while (grep { /$rootkey/ } keys %$config) {
+    while (grep { $_ eq $rootkey } keys %$config) {
         foreach my $key (keys %$config) {
             if ($key eq $rootkey) {
                  my $sub_config = delete $config->{$key};
@@ -331,14 +321,19 @@ sub files {
 }
 
 
-=head2 config_module
+=head2 config_modules
 
-Returns the module used to parse the config.  In this case: C<XML::Simple>
+Returns the modules required to parse the config.  In this case:
+C<XML::Simple>, C<XML::SAX> and C<XML::Filter::XInclude>.
 
 =cut
 
-sub config_module {
-    'XML::Simple';
+sub config_modules {
+    return qw(
+        XML::Simple
+        XML::SAX
+        XML::Filter::XInclude
+    );
 }
 
 =head1 CAVEATS
@@ -346,7 +341,7 @@ sub config_module {
 =head2 Lower Case names not supported with this driver
 
 The C<lower_case_names> option is not spported used with this driver.
-If you specify it, it will cause an error.
+If you specify it, it will produce a warning.
 
 =head1 SEE ALSO
 

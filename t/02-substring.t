@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 108;
+use Test::More 'no_plan';
 
 use Config::Context;
 
@@ -121,40 +121,92 @@ $Config_Text{'XMLSimple'} = <<EOF;
 
 EOF
 
+my $Raw_Config = {
+    'SectA' => {
+        "bbb" => {
+            testval_a   => 4,
+            testval_b   => 4,
+            testval_c   => 4,
+            testval_bbb => 4,
+        },
+    },
+    'SectC' => {
+        "bbb" => {
+            testval_c    => 5,
+            testval_Cbbb => 5,
+        },
+    },
+    'SectB' => {
+        "aaabbbccc" => {
+            testval_a         => 3,
+            testval_b         => 3,
+            testval_c         => 3,
+            testval_aaabbbccc => 3,
+        },
+        "aaa" => {
+            testval_a   => 1,
+            testval_b   => 1,
+            testval_c   => 1,
+            testval_aaa => 1,
+        },
+        "aaabbb" => {
+            testval_a      => 2,
+            testval_b      => 2,
+            testval_c      => 2,
+            testval_aaabbb => 2,
+        },
+    },
+
+};
+
 foreach my $driver (keys %Config_Text) {
     SKIP: {
 
         my $driver_module = 'Config::Context::' . $driver;
         eval "require $driver_module;";
-        my $config_module = $driver_module->config_module;
-        eval "require $config_module;";
+        my @config_modules = $driver_module->config_modules;
+
+        eval "require $_;" for @config_modules;
 
         if ($@) {
-            skip "$config_module not installed", 36;
+            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
         }
+
+        my @match_sections   = (
+            {
+                name       => 'SectA',
+                match_type => 'substring',
+            },
+            {
+                name       => 'SectB',
+                match_type => 'substring',
+            },
+            {
+                name           => 'SectC',
+                match_type     => 'substring',
+                merge_priority => 10,
+            },
+        );
+
+
         my $conf = Config::Context->new(
             driver           => $driver,
             string           => $Config_Text{$driver},
-            match_sections   => [
-                {
-                    name       => 'SectA',
-                    match_type => 'substring',
-                },
-                {
-                    name       => 'SectB',
-                    match_type => 'substring',
-                },
-                {
-                    name           => 'SectC',
-                    match_type     => 'substring',
-                    merge_priority => 10,
-                },
-            ],
+            match_sections   => \@match_sections,
+        );
+
+        my $raw_conf = Config::Context->new(
+            config           => $Raw_Config,
+            match_sections   => \@match_sections,
         );
 
         my %config;
 
         %config = $conf->context('wubba');
+
+        is_deeply(scalar($raw_conf->raw), scalar($conf->raw), 'Config from datastructure same as config from string');
+        is_deeply(scalar($raw_conf->context('wubba')), scalar($conf->context('wubba')), 'context config from datastructure same as config from string');
+
 
         ok (!keys %config, "$driver: wubba: no match");
 

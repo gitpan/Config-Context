@@ -14,11 +14,11 @@ Config::Context - Add C<< <Location> >> and C<< <LocationMatch> >> style context
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
@@ -175,13 +175,13 @@ our $VERSION = '0.05';
 =head2 Introduction
 
 This module provides a consistent interface to many hierarchical
-configuration file formats such as C<Config::General>, C<XML::Simple>
-and C<Config::Scoped>.
+configuration file formats such as L<Config::General>, L<XML::Simple>
+and L<Config::Scoped>.
 
 It also provides Apache-style context matching.  You can include blocks
 of configuration that match or not based on run-time parameters.
 
-For instance (using C<Config::General> syntax):
+For instance (using L<Config::General> syntax):
 
     company_name      = ACME
     in_the_users_area = 0
@@ -216,17 +216,17 @@ exact string matches, a substring, a path, or a regex.
 This kind of context-based matching was inspired by Apache's
 context-based configuration files.
 
-C<Config::Context> works with Apache-style config files (via
-C<Config::General>), XML documents (via C<XML::Simple>), and
-C<Config::Scoped> config files.  You select the type config file with
-the C<driver> option to C<new>.
+L<Config::Context> works with Apache-style config files (via
+L<Config::General>), XML documents (via L<XML::Simple>), and
+L<Config::Scoped> config files.  You select the type config file with
+the L<driver> option to L<new>.
 
-The examples in this document use C<Config::General> (Apache-style)
+The examples in this document use L<Config::General> (Apache-style)
 syntax.  For details on other configuration formats, see the
 documentation for the appropriate driver.
 
-For a real world example of C<Config::Context> in action, see
-C<CGI::Application::Plugin::Config::Context>, which determines
+For a real world example of L<Config::Context> in action, see
+L<CGI::Application::Plugin::Config::Context>, which determines
 configurations based on the URL of the request, the name of the Perl
 Module, and the virtual host handling the web request.
 
@@ -272,10 +272,10 @@ instance:
         'client_area'  => 0,
     };
 
-When using the C<Config::Context::ConfigScoped> driver, you must be
-careful with the use of the default section, since C<Config::Scoped>
+When using the L<Config::Context::ConfigScoped> driver, you must be
+careful with the use of the default section, since L<Config::Scoped>
 does its own inheritance from the global scope into named sections.  See
-the documentation for C<Config::Context::ConfigScoped> for more
+the documentation for L<Config::Context::ConfigScoped> for more
 information.
 
 =head2 Subsections are preserved
@@ -366,14 +366,14 @@ values.  For instance:
 
 Often more than one section will match the target string.  When this
 happens, the matching sections are merged together using the
-C<Hash::Merge> module.  Typically this means that sections that are
+L<Hash::Merge> module.  Typically this means that sections that are
 merged later override the values set in earlier sections.  (But you can
 change this behaviour.  See L<Changing Hash::Merge behaviour> below.)
 
 The order of merging matters.  The sections are merged first according
-to each section's C<merge_priority> value (lowest values are merged
+to each section's L<merge_priority> value (lowest values are merged
 first), and second by the length of the substring that matched (shortest
-matches are merged first).  If you don't specify C<merge_priority> for
+matches are merged first).  If you don't specify L<merge_priority> for
 any section, they all default to a priority of C<0> which means all
 sections are treated equally and matches are prioritized based soley on
 the length of the matching strings.
@@ -476,9 +476,9 @@ and other sections against weather:
 
 =head2 Matching other path-like strings
 
-You can use C<Config::Context> to match other hierarchical strings
+You can use L<Config::Context> to match other hierarchical strings
 besides paths and URLs.  For instance you could specify a
-C<path_separator> of C<::> and use the path feature to match against Perl
+L<path_separator> of C<::> and use the path feature to match against Perl
 modules:
 
     my $config_text = "
@@ -535,19 +535,23 @@ You can have matching sections within matching sections:
         </Location>
     </Site>
 
-Enable this feature by setting C<nesting_depth> parameter to C<new>,
+Enable this feature by setting L<nesting_depth> parameter to L<new>,
 or by calling C<< $conf->nesting_depth($some_value) >>.
+
+B<Note:> see the documentation of L<Config::Context::ConfigScoped> for
+the limitations of nesting with L<Config::Scoped> files.
 
 =head1 CONSTRUCTOR
 
 =head2 new(...)
 
-Creates and returns a new C<Config::Context> object.
+Creates and returns a new L<Config::Context> object.
 
 The configuration can be read from a file, parsed from a string, or can
 be generated from a perl data struture.
 
-    # Read from somefile.conf
+To read from a config file:
+
     my $conf = Config::Context->new(
         file           => 'somefile.conf',
         driver         => 'ConfigGeneral',
@@ -556,7 +560,8 @@ be generated from a perl data struture.
         ],
     );
 
-    # Parse from string
+To parse from a string:
+
     my $text = '
         in_the_users_area = 0
         <Directory /users>
@@ -572,7 +577,8 @@ be generated from a perl data struture.
         ],
     );
 
-    # Parse from perl data structure
+To generate from an existing Perl data structure:
+
     my %config = (
         'in_the_user_area' => '0'
         'Location' => {
@@ -599,17 +605,17 @@ The config file.
 
 =head3 string
 
-A string containing the configuration to be parsed.  If C<string> is
-specified then C<file> is ignored.
+A string containing the configuration to be parsed.  If L<string> is
+specified then L<file> is ignored.
 
 =head3 config
 
 A Perl multi-level data structure containing the configuration.  If
-C<config> is specified, then both C<file> and C<string> are ignored
+L<config> is specified, then both L<file> and L<string> are ignored.
 
 =head3 driver
 
-Which C<Config::Context> driver should parse the config.  Currently
+Which L<Config::Context> driver should parse the config.  Currently
 supported drivers are:
 
     driver            module name
@@ -637,16 +643,16 @@ where the top level keys are the driver names:
         },
     );
 
-In this case the options under C<ConfigScoped> will be passed to the
+In this example the options under C<ConfigScoped> will be passed to the
 C<ConfigScoped> driver.  (The options under C<ConfigGeneral> will be
 ignored because C<driver> is not set to C<'ConfigGeneral'>.)
 
 =head3 match_sections
 
-The C<match_sections> parameter defines how C<Config::Context> matches
+The L<match_sections> parameter defines how L<Config::Context> matches
 runtime values against configuration sections.
 
-C<match_sections> takes a list of specification hashrefs. Each
+L<match_sections> takes a list of specification hashrefs. Each
 specification has the following fields:
 
 =over 4
@@ -735,13 +741,13 @@ which the target string is matched.  For instance:
 
     my $conf = Config::Context->new(
         driver         => 'ConfigGeneral'
-        -MatchSections => [
+        match_sections => [
             {
-                -Name      => 'LocationMatch',
-                -MatchType => 'regex',
+                name       => 'LocationMatch',
+                match_type => 'regex',
             },
         ],
-        -ConfigFile => 'somefile.conf',
+        file        => 'somefile.conf',
     );
 
     my %config = $conf->context('banner.jpg');
@@ -782,7 +788,7 @@ The section string starts at the first character of the target string
 =item *
 
 In the target string, the section string is followed immediately by
-C<path_separator> or the end-of-string.
+L<path_separator> or the end-of-string.
 
 =back
 
@@ -802,7 +808,7 @@ For instance:
                 match_Type => 'path',
             },
         ],
-        config_file => 'somefile.conf',
+        file        => 'somefile.conf',
     );
 
 In this case, the following target strings would all match:
@@ -830,7 +836,7 @@ A synonym for 'path'.
 The path separator when matching hierarchical strings (paths, URLs,
 Module names, etc.).  It defaults to '/'.
 
-This parameter is ignored unless the C<match_type> is 'path' or
+This parameter is ignored unless the L<match_type> is 'path' or
 'hierarchical'.
 
 =item B<section_type>
@@ -885,7 +891,7 @@ file.
                 section_type => 'module',
             },
         ],
-        config_file => 'somefile.conf',
+        file        => 'somefile.conf',
 
         # need to turn off C-style comment parsing because of the
         # */ in the name of section 2
@@ -941,13 +947,13 @@ result is:
     };
 
 
-If a C<section_type> is not specified in a C<match_sections> block, then
+If a L<section_type> is not specified in a L<match_sections> block, then
 target strings of a named type will not match it.
 
 For another example, see L<Matching Context based on More than one String>, above.
 
-Matching by C<section_type> is used in
-C<CGI::Application::Plugin::Config::Context> to determine configurations
+Matching by L<section_type> is used in
+L<CGI::Application::Plugin::Config::Context> to determine configurations
 based both on the URL of the request and of the name of the Perl Module
 and runmode handling the request.
 
@@ -960,7 +966,7 @@ before they are used to match.  This is to allow for sections like:
     </Path>
 
 The whitespace at the end of the section name is necessary to prevent
-C<Config::General>'s parser from thinking that the first tag is an empty
+L<Config::General>'s parser from thinking that the first tag is an empty
 C<< <Path /> >> block.
 
     <Path /foo/bar/>  # Config::General parses this as <Path />
@@ -971,9 +977,9 @@ can disable trimming by setting trim_section_names to C<0> or C<undef>.
 
 =item B<merge_priority>
 
-Sections with a lower C<merge_priority> are merged before sections with
-a higher C<merge_priority>.  If two or more sections have the same
-C<merge_priority> they are weighted the same and they are merged
+Sections with a lower L<merge_priority> are merged before sections with
+a higher L<merge_priority>.  If two or more sections have the same
+L<merge_priority> they are weighted the same and they are merged
 according to the "best match" against the target string (i.e. the
 longest matching substring).
 
@@ -1043,12 +1049,12 @@ This option alows you to match against nested structures.
 
 You can also change the nesting depth by calling
 C<< $self->nesting_depth($depth) >> after you have constructed the
-C<Config::Context> object.
+L<Config::Context> object.
 
 =head3 lower_case_names
 
 Attempts to force all section and key names to lower case.  If
-C<lower_case_names> is true, then the following sections would
+L<lower_case_names> is true, then the following sections would
 all match 'location':
 
     <Location /somepath>
@@ -1060,7 +1066,7 @@ all match 'location':
     <lOcAtion /somepath>
     </LOCATION>
 
-Note that the C<XML::Simple> driver does not support this option.
+B<Note:> the C<XMLSimple> driver does not support this option.
 
 =head3 cache_config_files
 
@@ -1073,7 +1079,7 @@ See L<Config File Caching> under L<ADVANCED USAGE>, below.
 If config file caching is enabled, this option controls how often the
 config files are checked to see if they have changed.  The default is 60
 seconds.  This option is useful in a persistent environment such as
-C<mod_perl>.  See L<Config File Caching> under C<ADVANCED USAGE>, below.
+C<mod_perl>.  See L<Config File Caching> under L<ADVANCED USAGE>, below.
 
 =cut
 
@@ -1086,8 +1092,6 @@ sub new {
 
     my %args           = @_;
 
-    my $driver_name = delete $args{'driver'} or croak __PACKAGE__ . "->new(): 'driver' is required";
-    $driver_name    =~ /^\w+$/               or croak __PACKAGE__ . "->new(): 'driver' must only contain word characters";
 
     my $driver_opts        = delete $args{'driver_options'};
     my $config             = delete $args{'config'};
@@ -1098,19 +1102,25 @@ sub new {
     my $lower_case_names   = delete $args{'lower_case_names'};
     my $cache_config_files = exists $args{'cache_config_files'} ? delete $args{'cache_config_files'} : 1;
     my $stat_config        = exists $args{'stat_config'}        ? delete $args{'stat_config'}        : 60;
+    my $driver_name        = delete $args{'driver'};
 
     if (keys %args) {
         croak __PACKAGE__ . "->new(): unrecognized parameters: ". (join ', ', keys %args);
     }
 
-    my $driver_package = __PACKAGE__ . '::' . $driver_name;
-
-    my ($driver, $raw_config, $files);
+    my ($raw_config, $files);
 
     if ($config) {
         $raw_config = $config;
     }
     else {
+
+        if (!$driver_name) {
+            croak __PACKAGE__ . "->new(): 'driver' is required for configurations read from file or string";
+        }
+        $driver_name =~ /^\w+$/ or croak __PACKAGE__ . "->new(): 'driver' must only contain word characters";
+
+        my $driver_package = __PACKAGE__ . '::' . $driver_name;
 
         eval "require $driver_package;";
         if ($@) {
@@ -1155,6 +1165,7 @@ sub new {
         }
     }
 
+    $self->{'files'}            = $files;
     $self->{'raw_config'}       = $raw_config;
     $self->{'match_sections'}   = $match_sections    || [];
     $self->{'nesting_depth'}    = $nesting_depth     || 1;
@@ -1184,36 +1195,36 @@ sub raw {
 
 Returns the merged configuration of all sections matching
 C<$target_string>, according to the rules set up in
-C<match_sections> in C<new()>.  All C<match_sections> are included,
-regardless of their C<section_type>.
+L<match_sections> in L<new()>.  All L<match_sections> are included,
+regardless of their L<section_type>.
 
 =head2 context( $type => $target_string )
 
 Returns the merged configuration matching C<$target_string>, based only
-the C<match_section>s that have a C<section_type> of C<$type>.
+the L<match_section>s that have a L<section_type> of C<$type>.
 
 =head2 context( $type1 => $target_string1, $type2 => $target_string2 )
 
-Returns the merged configuration of all sections of C<section_type>
+Returns the merged configuration of all sections of L<section_type>
 C<$type1> matching C<$target_string1> and all sections of
-C<section_type> C<$type2> matching C<$target_string2>.
+L<section_type> C<$type2> matching C<$target_string2>.
 
-The order of the parameters to C<context()> is retained, so
+The order of the parameters to L<context()> is retained, so
 C<$type1> sections will be matched first, followed by C<$type2>
 sections.
 
 =head2 context( )
 
-If you call C<context> without parameters, it will return the same
-configuration that was generated by the last call to C<context>.
+If you call L<context> without parameters, it will return the same
+configuration that was generated by the last call to L<context>.
 
-If you call C<context> in a scalar context, you will receive a
+If you call L<context> in a scalar context, you will receive a
 reference to the config hash:
 
     my $config = $conf->context($target_string);
     my $value  = $config->{'somekey'};
 
-In a list context, C<context> returns a hash:
+In a list context, L<context> returns a hash:
 
     my %config = $conf->context($target_string);
     my $value  = $config{'somekey'};
@@ -1229,6 +1240,20 @@ sub context {
 
     return %{ $self->{'reduced_config'} } if wantarray;
     return $self->{'reduced_config'};
+}
+
+=head2 files
+
+Returns a list of all the config files read, including any config files
+included in the main file.
+
+=cut
+
+sub files {
+    my $self = shift;
+    my $files = $self->{'files'} || [];
+    return @$files if wantarray;
+    return $files;
 }
 
 # _reduce_nested()
@@ -1449,7 +1474,7 @@ sub _get_matching_sections {
 =head2 nesting_depth()
 
 Changes the default nesting depth, for matching nested structures.
-See the C<nesting_depth> parameter to C<new>.
+See the L<nesting_depth> parameter to L<new>.
 
 =cut
 
@@ -1598,7 +1623,7 @@ checked to see if it has changed.  If it has changed, then the file is
 reread.
 
 If the driver supports it, any included files will be checked for
-changes along the main file.   If you use C<Config::General>, you must
+changes along the main file.   If you use L<Config::General>, you must
 use version 2.28 or greater for this feature to work correctly.
 
 To disable caching of config files pass a false value to the
@@ -1628,19 +1653,19 @@ creating different configurations from the same file.
 
 =head2 Changing Hash::Merge behaviour
 
-Matching sections are merged together using the C<Hash::Merge> module.
+Matching sections are merged together using the L<Hash::Merge> module.
 If you want to change how this module does its work you can call
-subroutines in the C<Hash::Merge> package directly.  For instance, to
+subroutines in the L<Hash::Merge> package directly.  For instance, to
 change the merge strategy so that earlier sections have precidence over
 later sections, you could call:
 
     # Note American Spelling :)
     Hash::Merge::set_behavior('RIGHT_PRECEDENT')
 
-You should do this before you call C<context()>.
+You should do this before you call L<context()>.
 
 For more information on how to change merge options, see the
-C<Hash::Merge> docs.
+L<Hash::Merge> docs.
 =head1 AUTHOR
 
 Michael Graham, C<< <mag-perl@occamstoothbrush.com> >>

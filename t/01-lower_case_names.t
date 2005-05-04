@@ -4,34 +4,34 @@ use strict;
 use warnings;
 use Carp;
 
-use Test::More tests => 8;
+use Test::More 'no_plan';
 
 use Config::Context;
 
 my %Config_Text;
 
 $Config_Text{'ConfigGeneral'} = <<EOF;
-    <SeCTION    aaa>
+    <SeCTION    AAA>
         testval foo
     </SEction>
-    <SECTION    aaabbb>
+    <SECTION    AAAbbb>
         testval bar
     </section>
-    <secTION    aaabbbccc>
+    <secTION    AAAbbbccc>
         testval baz
     </sECTION>
 EOF
 
 $Config_Text{'ConfigScoped'} = <<EOF;
-    SeCTION aaa {
+    SeCTION AAA {
         testval = foo
     }
 
-    SECTION aaabbb {
+    SECTION AAAbbb {
         testval = bar
     }
 
-    secTION aaabbbccc {
+    secTION AAAbbbccc {
         testval = baz
     }
 EOF
@@ -43,14 +43,11 @@ foreach my $driver (keys %Config_Text) {
 
         my $driver_module = 'Config::Context::' . $driver;
         eval "require $driver_module;";
-        if ($@) {
-            croak "errors requiring $driver_module: $@";
-        }
-        my $config_module = $driver_module->config_module;
-        eval "require $config_module;";
+        my @config_modules = $driver_module->config_modules;
+        eval "require $_;" for @config_modules;
 
         if ($@) {
-            skip "$config_module not installed", 4;
+            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
         }
 
         # Without -LowerCaseNames
@@ -66,12 +63,21 @@ foreach my $driver (keys %Config_Text) {
         );
 
 
+        # Config::General and Config::Scoped handle lower case names differently:
+        # Config::General: <section FOO>...</section>   => {section}{FOO}
+        # Config::Scoped:  section FOO { ... }          => {section}{foo}
+        # This affects match strings and the resultant data structure
+
+        my $aaa = 'AAA';
+        $aaa = 'aaa' if $driver eq 'ConfigScoped';
+
         %config = $conf->context('wubba');
 
-        %config = $conf->context('aaa');
+        %config = $conf->context($aaa);
         ok(!exists $config{'testval'}, "$driver: case sensitive [aaa] testval:   not exists");
 
-        %config = $conf->context('aaabbbccc');
+
+        %config = $conf->context($aaa . 'bbbccc');
         ok(!exists $config{'testval'}, "$driver: case sensitive [aaabbbccc] testval:   not exists");
 
 
@@ -88,12 +94,15 @@ foreach my $driver (keys %Config_Text) {
             ],
         );
 
-        %config = $conf->raw;
 
-        %config = $conf->context('aaa');
+        %config = $conf->raw;
+        is($config{'section'}{$aaa}{'testval'},   'foo', "$driver: case insensitive [aaa] testval:   foo");
+
+
+        %config = $conf->context($aaa);
         is($config{'testval'},   'foo', "$driver: case insensitive [aaa] testval:   foo");
 
-        %config = $conf->context('aaabbbccc');
+        %config = $conf->context($aaa . 'bbbccc');
         is($config{'testval'},   'baz', "$driver: case insensitive [aaabbbccc] testval:   baz");
     }
 }

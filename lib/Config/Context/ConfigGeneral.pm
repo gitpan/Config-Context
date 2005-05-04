@@ -71,6 +71,7 @@ following options are turned on by default:
 
     -MergeDuplicateBlocks  => 1
     -MergeDuplicateOptions => 1
+    -IncludeRelative       => 1
 
 You can change this behaviour by passing a different value to
 C<driver_params> to C<new>:
@@ -126,17 +127,25 @@ sub new {
     $driver_opts{'-MergeDuplicateOptions'} = 1
         unless defined $driver_opts{'-MergeDuplicateOptions'};
 
+    $driver_opts{'-IncludeRelative'} = 1
+        unless defined $driver_opts{'-IncludeRelative'};
+
+
     $driver_opts{'-LowerCaseNames'} = $args{'lower_case_names'};
 
     my $self = {};
 
     if ($args{'string'}) {
+        local $^W; # suppress 'uninitialized value' warnings from within Config::General
+
         $self->{'conf'} = Config::General->new(
             %driver_opts,
             -String  => $args{'string'},
         );
     }
     elsif($args{'file'}) {
+        local $^W; # suppress 'uninitialized value' warnings from within Config::General
+
         $self->{'conf'} = Config::General->new(
             %driver_opts,
             -ConfigFile => $args{'file'},
@@ -179,7 +188,7 @@ sub files {
 
     my @files;
     if ($self->{'conf'}->can('files')) {
-        @files = $self->{'conf'}->files if $self->{'conf'}->can('files');
+        @files = $self->{'conf'}->files;
     }
     elsif (exists $self->{'file'}) {
         @files = ($self->{'file'});
@@ -191,13 +200,13 @@ sub files {
     return \@files;
 }
 
-=head2 config_module
+=head2 config_modules
 
-Returns the module used to parse the config.  In this case: C<Config::General>
+Returns the modules used to parse the config.  In this case: C<Config::General>
 
 =cut
 
-sub config_module {
+sub config_modules {
     'Config::General';
 }
 

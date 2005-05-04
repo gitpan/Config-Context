@@ -1,5 +1,22 @@
 Revision history for Config-Context
 
+0.06    2005-May-04
+        - Minor documentation fixes
+        - config option to new:
+          - removed the requirement to specify a driver
+          - added test case
+        - added 'files' method
+        - changed Config::General feature detection
+        - suppress warnings that appear under "perl -w" but not under
+          "use warnings" (for removing warnings during test suite)
+        - changed 'lower_case_names' in Config::Context::XMLSimple from
+          an error to a warning
+        - fixed XMLSimple driver so that system fails gracefully when
+          XML modules are not installed
+        - fixed tests to detect all prereqs of driver, instead of just
+          a single module (this was done mostly for XML::Simple which
+          depends on three modules)
+
 0.05    2005-Apr-24
         - First internal version, based on Config::General::Match 0.04
         - added Config::Scoped support

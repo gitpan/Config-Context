@@ -3,7 +3,17 @@ use strict;
 use warnings;
 use Carp;
 use Config::Context;
-use Test::More 'no_plan';
+use Test::More;
+
+eval { require Config::General; };
+
+if ($@) {
+    plan 'skip_all' => "Config::General not installed"
+}
+else {
+    plan 'no_plan';
+}
+
 
 
 my $Config_File            = 't/testconf.conf';
@@ -25,7 +35,7 @@ sub write_config {
 eval { require Config::General; };
 
 my $CG_Included_File;
-if ($Config::General::VERSION > 2.28) {
+if ($Config::General::VERSION >= 2.28) {
     $CG_Included_File = $Included_File;
 }
 else {
@@ -124,21 +134,19 @@ EOF
 
 foreach my $driver (keys %Original_Conf) {
 
+    my ($conf, %config);
+
     SKIP: {
-        my ($conf, %config);
 
         my $driver_module = 'Config::Context::' . $driver;
         eval "require $driver_module;";
+        my @config_modules = $driver_module->config_modules;
+        eval "require $_;" for @config_modules;
 
         if ($@) {
-            croak "Errors loading $driver_module: $@";
+            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
         }
-        my $config_module = $driver_module->config_module;
-        eval "require $config_module;";
 
-        if ($@) {
-            skip "$config_module not installed", 47;
-        }
 
         write_config($Config_File, $Original_Conf{$driver});
 
@@ -324,7 +332,7 @@ foreach my $driver (keys %Original_Conf) {
 
         if ($driver eq 'ConfigGeneral') {
             unless (Config::General->can('files')) {
-                skip "Installed Config::General doesn't support 'files'", 11;
+                skip "Installed version of Config::General doesn't support 'files'", 11;
             }
         }
 

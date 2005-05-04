@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name: Config-Context
-version: 0.05
+version: 0.06
 author:
   - Michael Graham <mag-perl@occamstoothbrush.com>
 abstract: ! >-
@@ -16,7 +16,7 @@ requires:
 provides:
   Config::Context:
     file: lib/Config/Context.pm
-    version: 0.05
+    version: 0.06
   Config::Context::ConfigGeneral:
     file: lib/Config/Context/ConfigGeneral.pm
   Config::Context::ConfigScoped:

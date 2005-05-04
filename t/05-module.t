@@ -91,11 +91,11 @@ foreach my $driver (keys %Config_Text) {
 
         my $driver_module = 'Config::Context::' . $driver;
         eval "require $driver_module;";
-        my $config_module = $driver_module->config_module;
-        eval "require $config_module;";
+        my @config_modules = $driver_module->config_modules;
+        eval "require $_;" for @config_modules;
 
         if ($@) {
-            skip "$config_module not installed", 30;
+            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
         }
 
         my $conf = Config::Context->new(

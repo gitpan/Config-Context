@@ -4,7 +4,7 @@ NAME
     XML::Simple and Config::Scoped
 
 VERSION
-    Version 0.05
+    Version 0.06
 
 SYNOPSIS
   Apache-style configs (via Config::General)
@@ -154,13 +154,13 @@ SYNOPSIS
 DESCRIPTION
   Introduction
     This module provides a consistent interface to many hierarchical
-    configuration file formats such as "Config::General", "XML::Simple" and
-    "Config::Scoped".
+    configuration file formats such as Config::General, XML::Simple and
+    Config::Scoped.
 
     It also provides Apache-style context matching. You can include blocks
     of configuration that match or not based on run-time parameters.
 
-    For instance (using "Config::General" syntax):
+    For instance (using Config::General syntax):
 
         company_name      = ACME
         in_the_users_area = 0
@@ -195,17 +195,17 @@ DESCRIPTION
     This kind of context-based matching was inspired by Apache's
     context-based configuration files.
 
-    "Config::Context" works with Apache-style config files (via
-    "Config::General"), XML documents (via "XML::Simple"), and
-    "Config::Scoped" config files. You select the type config file with the
-    "driver" option to "new".
+    Config::Context works with Apache-style config files (via
+    Config::General), XML documents (via XML::Simple), and Config::Scoped
+    config files. You select the type config file with the driver option to
+    new.
 
-    The examples in this document use "Config::General" (Apache-style)
-    syntax. For details on other configuration formats, see the
-    documentation for the appropriate driver.
+    The examples in this document use Config::General (Apache-style) syntax.
+    For details on other configuration formats, see the documentation for
+    the appropriate driver.
 
-    For a real world example of "Config::Context" in action, see
-    "CGI::Application::Plugin::Config::Context", which determines
+    For a real world example of Config::Context in action, see
+    CGI::Application::Plugin::Config::Context, which determines
     configurations based on the URL of the request, the name of the Perl
     Module, and the virtual host handling the web request.
 
@@ -249,10 +249,10 @@ DESCRIPTION
             'client_area'  => 0,
         };
 
-    When using the "Config::Context::ConfigScoped" driver, you must be
-    careful with the use of the default section, since "Config::Scoped" does
-    its own inheritance from the global scope into named sections. See the
-    documentation for "Config::Context::ConfigScoped" for more information.
+    When using the Config::Context::ConfigScoped driver, you must be careful
+    with the use of the default section, since Config::Scoped does its own
+    inheritance from the global scope into named sections. See the
+    documentation for Config::Context::ConfigScoped for more information.
 
   Subsections are preserved
     When a block matches, and its configuration is merged into the top
@@ -337,18 +337,18 @@ DESCRIPTION
 
   Multiple Sections Matching
     Often more than one section will match the target string. When this
-    happens, the matching sections are merged together using the
-    "Hash::Merge" module. Typically this means that sections that are merged
-    later override the values set in earlier sections. (But you can change
-    this behaviour. See "Changing Hash::Merge behaviour" below.)
+    happens, the matching sections are merged together using the Hash::Merge
+    module. Typically this means that sections that are merged later
+    override the values set in earlier sections. (But you can change this
+    behaviour. See "Changing Hash::Merge behaviour" below.)
 
     The order of merging matters. The sections are merged first according to
-    each section's "merge_priority" value (lowest values are merged first),
+    each section's merge_priority value (lowest values are merged first),
     and second by the length of the substring that matched (shortest matches
-    are merged first). If you don't specify "merge_priority" for any
-    section, they all default to a priority of 0 which means all sections
-    are treated equally and matches are prioritized based soley on the
-    length of the matching strings.
+    are merged first). If you don't specify merge_priority for any section,
+    they all default to a priority of 0 which means all sections are treated
+    equally and matches are prioritized based soley on the length of the
+    matching strings.
 
     When two sections have the same priority, the section with the shorter
     match is merged first. The idea is that longer matches are more
@@ -444,10 +444,9 @@ DESCRIPTION
         };
 
   Matching other path-like strings
-    You can use "Config::Context" to match other hierarchical strings
-    besides paths and URLs. For instance you could specify a
-    "path_separator" of "::" and use the path feature to match against Perl
-    modules:
+    You can use Config::Context to match other hierarchical strings besides
+    paths and URLs. For instance you could specify a path_separator of "::"
+    and use the path feature to match against Perl modules:
 
         my $config_text = "
 
@@ -499,17 +498,21 @@ DESCRIPTION
             </Location>
         </Site>
 
-    Enable this feature by setting "nesting_depth" parameter to "new", or by
+    Enable this feature by setting nesting_depth parameter to new, or by
     calling "$conf->nesting_depth($some_value)".
+
+    Note: see the documentation of Config::Context::ConfigScoped for the
+    limitations of nesting with Config::Scoped files.
 
 CONSTRUCTOR
   new(...)
-    Creates and returns a new "Config::Context" object.
+    Creates and returns a new Config::Context object.
 
     The configuration can be read from a file, parsed from a string, or can
     be generated from a perl data struture.
 
-        # Read from somefile.conf
+    To read from a config file:
+
         my $conf = Config::Context->new(
             file           => 'somefile.conf',
             driver         => 'ConfigGeneral',
@@ -518,7 +521,8 @@ CONSTRUCTOR
             ],
         );
 
-        # Parse from string
+    To parse from a string:
+
         my $text = '
             in_the_users_area = 0
             <Directory /users>
@@ -534,7 +538,8 @@ CONSTRUCTOR
             ],
         );
 
-        # Parse from perl data structure
+    To generate from an existing Perl data structure:
+
         my %config = (
             'in_the_user_area' => '0'
             'Location' => {
@@ -558,15 +563,15 @@ CONSTRUCTOR
     The config file.
 
    string
-    A string containing the configuration to be parsed. If "string" is
-    specified then "file" is ignored.
+    A string containing the configuration to be parsed. If string is
+    specified then file is ignored.
 
    config
     A Perl multi-level data structure containing the configuration. If
-    "config" is specified, then both "file" and "string" are ignored
+    config is specified, then both file and string are ignored.
 
    driver
-    Which "Config::Context" driver should parse the config. Currently
+    Which Config::Context driver should parse the config. Currently
     supported drivers are:
 
         driver            module name
@@ -593,15 +598,15 @@ CONSTRUCTOR
             },
         );
 
-    In this case the options under "ConfigScoped" will be passed to the
+    In this example the options under "ConfigScoped" will be passed to the
     "ConfigScoped" driver. (The options under "ConfigGeneral" will be
     ignored because "driver" is not set to 'ConfigGeneral'.)
 
    match_sections
-    The "match_sections" parameter defines how "Config::Context" matches
-    runtime values against configuration sections.
+    The match_sections parameter defines how Config::Context matches runtime
+    values against configuration sections.
 
-    "match_sections" takes a list of specification hashrefs. Each
+    match_sections takes a list of specification hashrefs. Each
     specification has the following fields:
 
     name
@@ -683,13 +688,13 @@ CONSTRUCTOR
 
                 my $conf = Config::Context->new(
                     driver         => 'ConfigGeneral'
-                    -MatchSections => [
+                    match_sections => [
                         {
-                            -Name      => 'LocationMatch',
-                            -MatchType => 'regex',
+                            name       => 'LocationMatch',
+                            match_type => 'regex',
                         },
                     ],
-                    -ConfigFile => 'somefile.conf',
+                    file        => 'somefile.conf',
                 );
 
                 my %config = $conf->context('banner.jpg');
@@ -722,7 +727,7 @@ CONSTRUCTOR
                 target string
 
             *   In the target string, the section string is followed
-                immediately by "path_separator" or the end-of-string.
+                immediately by path_separator or the end-of-string.
 
             For instance:
 
@@ -740,7 +745,7 @@ CONSTRUCTOR
                             match_Type => 'path',
                         },
                     ],
-                    config_file => 'somefile.conf',
+                    file        => 'somefile.conf',
                 );
 
             In this case, the following target strings would all match:
@@ -764,7 +769,7 @@ CONSTRUCTOR
         The path separator when matching hierarchical strings (paths, URLs,
         Module names, etc.). It defaults to '/'.
 
-        This parameter is ignored unless the "match_type" is 'path' or
+        This parameter is ignored unless the match_type is 'path' or
         'hierarchical'.
 
     section_type
@@ -818,7 +823,7 @@ CONSTRUCTOR
                         section_type => 'module',
                     },
                 ],
-                config_file => 'somefile.conf',
+                file        => 'somefile.conf',
 
                 # need to turn off C-style comment parsing because of the
                 # */ in the name of section 2
@@ -873,14 +878,14 @@ CONSTRUCTOR
                 'Installed_Module' => 0,
             };
 
-        If a "section_type" is not specified in a "match_sections" block,
-        then target strings of a named type will not match it.
+        If a section_type is not specified in a match_sections block, then
+        target strings of a named type will not match it.
 
         For another example, see "Matching Context based on More than one
         String", above.
 
-        Matching by "section_type" is used in
-        "CGI::Application::Plugin::Config::Context" to determine
+        Matching by section_type is used in
+        CGI::Application::Plugin::Config::Context to determine
         configurations based both on the URL of the request and of the name
         of the Perl Module and runmode handling the request.
 
@@ -893,8 +898,8 @@ CONSTRUCTOR
             </Path>
 
         The whitespace at the end of the section name is necessary to
-        prevent "Config::General"'s parser from thinking that the first tag
-        is an empty "<Path />" block.
+        prevent Config::General's parser from thinking that the first tag is
+        an empty "<Path />" block.
 
             <Path /foo/bar/>  # Config::General parses this as <Path />
             </Path>           # Config::General now considers this to be spurious
@@ -904,9 +909,9 @@ CONSTRUCTOR
         "undef".
 
     merge_priority
-        Sections with a lower "merge_priority" are merged before sections
-        with a higher "merge_priority". If two or more sections have the
-        same "merge_priority" they are weighted the same and they are merged
+        Sections with a lower merge_priority are merged before sections with
+        a higher merge_priority. If two or more sections have the same
+        merge_priority they are weighted the same and they are merged
         according to the "best match" against the target string (i.e. the
         longest matching substring).
 
@@ -972,11 +977,11 @@ CONSTRUCTOR
 
     You can also change the nesting depth by calling
     "$self->nesting_depth($depth)" after you have constructed the
-    "Config::Context" object.
+    Config::Context object.
 
    lower_case_names
     Attempts to force all section and key names to lower case. If
-    "lower_case_names" is true, then the following sections would all match
+    lower_case_names is true, then the following sections would all match
     'location':
 
         <Location /somepath>
@@ -988,7 +993,7 @@ CONSTRUCTOR
         <lOcAtion /somepath>
         </LOCATION>
 
-    Note that the "XML::Simple" driver does not support this option.
+    Note: the "XMLSimple" driver does not support this option.
 
    cache_config_files
     Whether or not to cache configuration files. Enabled, by default. This
@@ -1008,40 +1013,44 @@ METHODS
 
   context( $target_string )
     Returns the merged configuration of all sections matching
-    $target_string, according to the rules set up in "match_sections" in
-    "new()". All "match_sections" are included, regardless of their
-    "section_type".
+    $target_string, according to the rules set up in match_sections in
+    new(). All match_sections are included, regardless of their
+    section_type.
 
   context( $type => $target_string )
     Returns the merged configuration matching $target_string, based only the
-    "match_section"s that have a "section_type" of $type.
+    match_sections that have a section_type of $type.
 
   context( $type1 => $target_string1, $type2 => $target_string2 )
-    Returns the merged configuration of all sections of "section_type"
-    $type1 matching $target_string1 and all sections of "section_type"
-    $type2 matching $target_string2.
+    Returns the merged configuration of all sections of section_type $type1
+    matching $target_string1 and all sections of section_type $type2
+    matching $target_string2.
 
-    The order of the parameters to "context()" is retained, so $type1
-    sections will be matched first, followed by $type2 sections.
+    The order of the parameters to context() is retained, so $type1 sections
+    will be matched first, followed by $type2 sections.
 
   context( )
-    If you call "context" without parameters, it will return the same
-    configuration that was generated by the last call to "context".
+    If you call context without parameters, it will return the same
+    configuration that was generated by the last call to context.
 
-    If you call "context" in a scalar context, you will receive a reference
-    to the config hash:
+    If you call context in a scalar context, you will receive a reference to
+    the config hash:
 
         my $config = $conf->context($target_string);
         my $value  = $config->{'somekey'};
 
-    In a list context, "context" returns a hash:
+    In a list context, context returns a hash:
 
         my %config = $conf->context($target_string);
         my $value  = $config{'somekey'};
 
+  files
+    Returns a list of all the config files read, including any config files
+    included in the main file.
+
   nesting_depth()
     Changes the default nesting depth, for matching nested structures. See
-    the "nesting_depth" parameter to "new".
+    the nesting_depth parameter to new.
 
   clear_file_cache
     Clears the internal file cache. Class method.
@@ -1062,7 +1071,7 @@ ADVANCED USAGE
     reread.
 
     If the driver supports it, any included files will be checked for
-    changes along the main file. If you use "Config::General", you must use
+    changes along the main file. If you use Config::General, you must use
     version 2.28 or greater for this feature to work correctly.
 
     To disable caching of config files pass a false value to the
@@ -1091,19 +1100,19 @@ ADVANCED USAGE
     creating different configurations from the same file.
 
   Changing Hash::Merge behaviour
-    Matching sections are merged together using the "Hash::Merge" module. If
+    Matching sections are merged together using the Hash::Merge module. If
     you want to change how this module does its work you can call
-    subroutines in the "Hash::Merge" package directly. For instance, to
-    change the merge strategy so that earlier sections have precidence over
-    later sections, you could call:
+    subroutines in the Hash::Merge package directly. For instance, to change
+    the merge strategy so that earlier sections have precidence over later
+    sections, you could call:
 
         # Note American Spelling :)
         Hash::Merge::set_behavior('RIGHT_PRECEDENT')
 
-    You should do this before you call "context()".
+    You should do this before you call context().
 
-    For more information on how to change merge options, see the
-    "Hash::Merge" docs. =head1 AUTHOR
+    For more information on how to change merge options, see the Hash::Merge
+    docs. =head1 AUTHOR
 
     Michael Graham, "<mag-perl@occamstoothbrush.com>"
 

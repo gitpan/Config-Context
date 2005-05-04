@@ -3,6 +3,7 @@ TODO
 - CPAN installer that lets you pick your driver and
   doesn't automatically set Config::General as prereq
 
-- Fix warnings during tests
+- YAML support
 
+- Tests for parameter correctness (e.g. %driver_opts to XMLSimple)
 

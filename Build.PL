@@ -12,8 +12,9 @@ my $builder = Module::Build->new(
         'Clone'           => 0,
         'Hash::Merge'     => 0,
         'Config::General' => 2.27,
-    },                         
+    },
     add_to_cleanup      => [ 'Config-Context-*' ],
+    create_makefile_pl  => 'traditional',
 );
 
 $builder->create_build_script();

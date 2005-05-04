@@ -11,19 +11,18 @@ diag( "Testing Config::Context $Config::Context::VERSION" );
 my $conf;
 eval {
     $conf = Config::Context->new(
-        borgle => 1
-    );
-};
-like($@, qr/required/, 'driver param required (1)');
-like($@, qr/driver/,   'driver param required (2)');
-
-eval {
-    $conf = Config::Context->new(
         driver => 'foo',
         borgle => 1
     );
 };
 like($@, qr/borgle/, 'caught bad param');
+
+eval {
+    $conf = Config::Context->new(
+    );
+};
+like($@, qr/driver/,   'driver param required (2)');
+like($@, qr/required/, 'driver param required (1)');
 
 eval {
     $conf = Config::Context->new(

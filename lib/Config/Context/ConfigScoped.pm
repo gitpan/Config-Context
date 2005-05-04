@@ -202,13 +202,13 @@ sub files {
     return \@files;
 }
 
-=head2 config_module
+=head2 config_modules
 
-Returns the module used to parse the config.  In this case: C<Config::Scoped>
+Returns the modules used to parse the config.  In this case: C<Config::Scoped>
 
 =cut
 
-sub config_module {
+sub config_modules {
     'Config::Scoped';
 }
 
@@ -277,7 +277,7 @@ This is important to keep in mind because C<Config::Scoped> does not
 allow nested declarations.
 
 
-=head2 Default Section
+=head2 Avoid using the Default Section
 
 When using the C<Config::Context::ConfigScoped> driver, you must be
 careful with the use of the default section, since C<Config::Scoped>
@@ -332,6 +332,33 @@ One solution is to use hashes, rather than declarations:
 This works, because in C<Config::Scoped>, hashes do not inherit
 parameters from their enclosing scope.
 
+However, note that when two hashes with the same name collide, their
+values are not merged together.  Instead, one hash replaces the other
+hash.  See above under L<Limitations of hash merging with included files>.
+
+=head2 lower_case_names also affects section names
+
+If you use the lower_case_names option, be aware that it also affects
+the names of declaration blocks.  For instance, the following
+configuration,
+
+    Location /FOO {
+        Some_Param = 'Some Value'
+    }
+
+becomes:
+
+    {
+        'location' => {
+            '/foo' => {
+                'some param' => 'Some Value';
+            }
+        }
+    }
+
+Unless you expect this behaviour (which you probably don't), you should
+probably avoid using C<lower_case_options> with C<Config::Scoped>.
+
 =head2 _GLOBAL Scope automatically merged
 
 Normally, if there are no declarations in a C<Config::Scope> file, all
@@ -342,7 +369,8 @@ under C<_GLOBAL> up a level.  Basically, it does the equivalent of:
     $config = $config->{_GLOBAL};
 
 The reason for this is to allow use of hashes instead of declarations to
-enable default values.
+enable default values.  See L<Limitations of hash merging with included files>,
+above.
 
 =head2 Quote block names
 
