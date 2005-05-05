@@ -118,7 +118,7 @@ sub new {
     my $class = ref $proto || $proto;
     my %args  = @_;
 
-    require Config::Scoped;
+    Config::Context->_require_prerequisite_modules($class);
 
     # Copy driver opts
     my %driver_opts = %{ $args{'options'}{'ConfigScoped'} || {} };

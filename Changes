@@ -1,5 +1,9 @@
 Revision history for Config-Context
 
+0.07    2005-May-06
+        - improved error messages when one or more of a driver's
+          prerequisite modules are missing
+
 0.06    2005-May-04
         - Minor documentation fixes
         - config option to new:

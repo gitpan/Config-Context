@@ -117,7 +117,7 @@ sub new {
     my $class = ref $proto || $proto;
     my %args  = @_;
 
-    require Config::General;
+    Config::Context->_require_prerequisite_modules($class);
 
     my %driver_opts = %{ $args{'options'}{'ConfigGeneral'} || {} };
 

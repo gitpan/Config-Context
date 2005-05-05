@@ -4,7 +4,7 @@ NAME
     XML::Simple and Config::Scoped
 
 VERSION
-    Version 0.06
+    Version 0.07
 
 SYNOPSIS
   Apache-style configs (via Config::General)
@@ -1112,8 +1112,9 @@ ADVANCED USAGE
     You should do this before you call context().
 
     For more information on how to change merge options, see the Hash::Merge
-    docs. =head1 AUTHOR
+    docs.
 
+AUTHOR
     Michael Graham, "<mag-perl@occamstoothbrush.com>"
 
 BUGS
@@ -1122,7 +1123,6 @@ BUGS
     <http://rt.cpan.org>. I will be notified, and then you'll automatically
     be notified of progress on your bug as I make changes.
 
-ACKNOWLEDGEMENTS
 COPYRIGHT & LICENSE
     Copyright 2005 Michael Graham, All Rights Reserved.
 

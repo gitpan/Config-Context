@@ -14,11 +14,11 @@ Config::Context - Add C<< <Location> >> and C<< <LocationMatch> >> style context
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 SYNOPSIS
 
@@ -1608,6 +1608,28 @@ sub clear_file_cache {
     %CC_Cache = ();
 }
 
+# Utility method for drivers to load their prerequsite modules
+
+sub _require_prerequisite_modules {
+    my ($class, $driver_class) = @_;
+
+    my @missing_modules;
+
+    foreach my $module ($driver_class->config_modules) {
+        eval "require $module";
+        if ($@) {
+            push @missing_modules, $module;
+        }
+    }
+    if (@missing_modules) {
+        foreach my $module (@missing_modules) {
+            warn "$driver_class: missing prerequisite module: $module\n";
+        }
+        die "Can't continue loading: $driver_class\n";
+    }
+}
+
+
 =head1 ADVANCED USAGE
 
 =head2 Config File Caching
@@ -1666,6 +1688,7 @@ You should do this before you call L<context()>.
 
 For more information on how to change merge options, see the
 L<Hash::Merge> docs.
+
 =head1 AUTHOR
 
 Michael Graham, C<< <mag-perl@occamstoothbrush.com> >>
@@ -1676,8 +1699,6 @@ Please report any bugs or feature requests to
 C<bug-config-context@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.  I will be notified, and then you'll automatically
 be notified of progress on your bug as I make changes.
-
-=head1 ACKNOWLEDGEMENTS
 
 =head1 COPYRIGHT & LICENSE
 

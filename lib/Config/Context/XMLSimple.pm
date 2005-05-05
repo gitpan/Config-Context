@@ -217,9 +217,7 @@ sub new {
     my $class = ref $proto || $proto;
     my %args  = @_;
 
-    require XML::Simple;
-    require XML::Filter::XInclude;
-    require XML::SAX;
+    Config::Context->_require_prerequisite_modules($class);
 
     my %driver_opts = %{ $args{'options'}{'XMLSimple'} || {} };
 
