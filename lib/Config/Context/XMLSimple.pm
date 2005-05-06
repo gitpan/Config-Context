@@ -19,7 +19,7 @@ Config::Context::XMLSimple - Use XML-based config files with Config::Context
         <opt>
 
           <Location name="/users">
-            <title>Bork Area</title>
+            <title>User Area</title>
           </Location>
 
           <LocationMatch name="\.*(jpg|gif|png)$">

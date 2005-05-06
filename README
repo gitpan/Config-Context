@@ -4,7 +4,7 @@ NAME
     XML::Simple and Config::Scoped
 
 VERSION
-    Version 0.07
+    Version 0.08
 
 SYNOPSIS
   Apache-style configs (via Config::General)
@@ -62,7 +62,7 @@ SYNOPSIS
             <opt>
 
               <Location name="/users">
-                <title>Bork Area</title>
+                <title>User Area</title>
               </Location>
 
               <LocationMatch name="\.*(jpg|gif|png)$">

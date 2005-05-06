@@ -14,11 +14,11 @@ Config::Context - Add C<< <Location> >> and C<< <LocationMatch> >> style context
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
@@ -79,7 +79,7 @@ our $VERSION = '0.07';
         <opt>
 
           <Location name="/users">
-            <title>Bork Area</title>
+            <title>User Area</title>
           </Location>
 
           <LocationMatch name="\.*(jpg|gif|png)$">
