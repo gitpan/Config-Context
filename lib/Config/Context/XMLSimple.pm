@@ -338,7 +338,7 @@ sub config_modules {
 
 =head2 Lower Case names not supported with this driver
 
-The C<lower_case_names> option is not spported used with this driver.
+The C<lower_case_names> option is not supported used with this driver.
 If you specify it, it will produce a warning.
 
 =head1 SEE ALSO

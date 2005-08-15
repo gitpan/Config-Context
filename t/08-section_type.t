@@ -3,7 +3,8 @@
 use strict;
 use warnings;
 
-use Test::More 'no_plan';
+use Test::More 'tests' => 36;
+my $Per_Driver_Tests = 12;
 
 
 use Config::Context;
@@ -151,95 +152,128 @@ $Config_Text{'XMLSimple'} = <<'EOF';
 
 EOF
 
-foreach my $driver (keys %Config_Text) {
-    SKIP: {
+sub runtests {
+    my $driver = shift;
 
-        my $driver_module = 'Config::Context::' . $driver;
-        eval "require $driver_module;";
-        my @config_modules = $driver_module->config_modules;
-        eval "require $_;" for @config_modules;
+    my $conf = Config::Context->new(
+        driver => $driver,
+        string => $Config_Text{$driver},
+        match_sections => [
+            {
+                name           => 'App',
+                match_type     => 'hierarchy',
+                path_separator => '::',
+                section_type   => 'module',
+            },
+            {
+                name           => 'Module',
+                match_type     => 'path',
+                path_separator => '::',
+                section_type   => 'module',
+            },
+            {
+                name         => 'Path',
+                match_type   => 'path',
+                section_type => 'path',
+            },
+            {
+                name         => 'Location',
+                match_type   => 'path',
+                section_type => 'path',
+            },
+            {
+                name         => 'LocationMatch',
+                match_type   => 'substring',
+                section_type => 'path',
+            },
+            {
+                name         => 'FooMatch',
+                match_type   => 'regex',
+                section_type => 'foo',
+            },
+        ],
+    );
 
-        if ($@) {
-            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
-        }
+    my %config;
 
-        my $conf = Config::Context->new(
-            driver => $driver,
-            string => $Config_Text{$driver},
-            match_sections => [
-                {
-                    name           => 'App',
-                    match_type     => 'hierarchy',
-                    path_separator => '::',
-                    section_type   => 'module',
-                },
-                {
-                    name           => 'Module',
-                    match_type     => 'path',
-                    path_separator => '::',
-                    section_type   => 'module',
-                },
-                {
-                    name         => 'Path',
-                    match_type   => 'path',
-                    section_type => 'path',
-                },
-                {
-                    name         => 'Location',
-                    match_type   => 'path',
-                    section_type => 'path',
-                },
-                {
-                    name         => 'LocationMatch',
-                    match_type   => 'substring',
-                    section_type => 'path',
-                },
-                {
-                    name         => 'FooMatch',
-                    match_type   => 'regex',
-                    section_type => 'foo',
-                },
-            ],
-        );
+    %config = $conf->context(
+        module => 'Foo',
+        path   => '/foo',
+        foo    => 'xxx',
+    );
 
-        my %config;
+    # <section> (chars): val
+    # <Module Foo> (3): 1
+    # <Path /foo>  (4): 4
 
-        %config = $conf->context(
-            module => 'Foo',
-            path   => '/foo',
-            foo    => 'xxx',
-        );
+    is($config{'val'},         4,             "$driver: [module=Foo,path=/foo,foo=xxx] val:         4");
+    is($config{'sect'},        '_Path_foo',  "$driver: [module=Foo,path=/foo,foo=xxx] sect:        [Path]/foo");
+    is($config{'Path_foo'},  1,             "$driver: [module=Foo,path=/foo,foo=xxx] [Path]/foo:  1");
+    is($config{'Module_Foo'}, 1,             "$driver: [module=Foo,path=/foo,foo=xxx] [Module]Foo: 1");
 
-        # <section> (chars): val
-        # <Module Foo> (3): 1
-        # <Path /foo>  (4): 4
+    %config = $conf->context(
+        module => 'Foo::Bar::Baz',
+        path   => '/foo/bar/baz',
+        foo    => 'apple',
+    );
+    # <section> (chars): val
+    # <FooMatch a+>          (1): 7
+    # <Module Foo>           (3): 1
+    # <Path /foo>            (4): 4
+    # <Location /foo/bar>    (8): 5
+    # <App Foo_Bar_>       (10): 2
+    # <Module Foo_Bar_Baz> (13): 3
 
-        is($config{'val'},         4,             "$driver: [module=Foo,path=/foo,foo=xxx] val:         4");
-        is($config{'sect'},        '_Path_foo',  "$driver: [module=Foo,path=/foo,foo=xxx] sect:        [Path]/foo");
-        is($config{'Path_foo'},  1,             "$driver: [module=Foo,path=/foo,foo=xxx] [Path]/foo:  1");
-        is($config{'Module_Foo'}, 1,             "$driver: [module=Foo,path=/foo,foo=xxx] [Module]Foo: 1");
+    is($config{'val'},                    3,                       "$driver: _module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] val:                 3");
+    is($config{'sect'},                   '_Module_Foo_Bar_Baz', "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] sect:                [Module]Foo::Bar::Baz");
+    is($config{'FooMatch_a_'},            1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] _FooMatch]a+:        1");
+    is($config{'Module_Foo'},             1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [Module]Foo:         1");
+    is($config{'Path_foo'},               1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [Path]/foo:          1");
+    is($config{'Location_foo_bar'},       1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [Location]/foo/bar:  1");
+    is($config{'App_Foo_Bar_'},           1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [App]Foo::Bar::      1");
+    is($config{'Module_Foo_Bar_Baz'},     1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [App]Foo::Bar::Baz   1");
+}
 
-        %config = $conf->context(
-            module => 'Foo::Bar::Baz',
-            path   => '/foo/bar/baz',
-            foo    => 'apple',
-        );
-        # <section> (chars): val
-        # <FooMatch a+>          (1): 7
-        # <Module Foo>           (3): 1
-        # <Path /foo>            (4): 4
-        # <Location /foo/bar>    (8): 5
-        # <App Foo_Bar_>       (10): 2
-        # <Module Foo_Bar_Baz> (13): 3
-
-        is($config{'val'},                    3,                       "$driver: _module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] val:                 3");
-        is($config{'sect'},                   '_Module_Foo_Bar_Baz', "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] sect:                [Module]Foo::Bar::Baz");
-        is($config{'FooMatch_a_'},           1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] _FooMatch]a+:        1");
-        is($config{'Module_Foo'},            1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [Module]Foo:         1");
-        is($config{'Path_foo'},             1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [Path]/foo:          1");
-        is($config{'Location_foo_bar'},     1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [Location]/foo/bar:  1");
-        is($config{'App_Foo_Bar_'},        1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [App]Foo::Bar::      1");
-        is($config{'Module_Foo_Bar_Baz'},  1,                       "$driver: [module=Foo::Bar::Baz,path=/foo/bar/baz,foo=apple] [App]Foo::Bar::Baz   1");
+SKIP: {
+    if (test_driver_prereqs('ConfigGeneral')) {
+        runtests('ConfigGeneral');
+    }
+    else {
+        skip "Config::General not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('ConfigScoped')) {
+        runtests('ConfigScoped');
+    }
+    else {
+        skip "Config::Scoped not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('XMLSimple')) {
+        runtests('XMLSimple');
+    }
+    else {
+        skip "XML::Simple, XML::SAX or XML::Filter::XInclude not installed", $Per_Driver_Tests;
     }
 }
 
+sub test_driver_prereqs {
+    my $driver = shift;
+    my $driver_module = 'Config::Context::' . $driver;
+    eval "require $driver_module;";
+    die $@ if $@;
+
+    eval "require $driver_module;";
+    my @required_modules = $driver_module->config_modules;
+
+    foreach (@required_modules) {
+        eval "require $_;";
+        if ($@) {
+            return;
+        }
+    }
+    return 1;
+
+}

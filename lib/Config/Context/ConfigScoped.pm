@@ -61,7 +61,7 @@ Config::Context::ConfigScoped - Use Config::Scoped config files with Config::Con
 =head1 DESCRIPTION
 
 This module uses C<Config::Scoped> to parse config files for
-C<Config::Context>.  See the C<Config::Context> docs for more information.
+C<Config::Context>.
 
 =head1 DEFAULT OPTIONS
 
@@ -357,7 +357,7 @@ becomes:
     }
 
 Unless you expect this behaviour (which you probably don't), you should
-probably avoid using C<lower_case_options> with C<Config::Scoped>.
+probably avoid using the C<lower_case_names> option with C<Config::Scoped>.
 
 =head2 _GLOBAL Scope automatically merged
 

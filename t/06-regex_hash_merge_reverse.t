@@ -5,7 +5,8 @@
 use strict;
 use warnings;
 
-use Test::More 'no_plan';
+use Test::More 'tests' => 63;
+my $Per_Driver_Tests = 21;
 
 use Config::Context;
 
@@ -103,78 +104,112 @@ $Config_Text{'XMLSimple'} = <<EOF;
 EOF
 
 
-foreach my $driver (keys %Config_Text) {
-    SKIP: {
+sub runtests {
+    my $driver = shift;
 
-        my $driver_module = 'Config::Context::' . $driver;
-        eval "require $driver_module;";
-        my @config_modules = $driver_module->config_modules;
-        eval "require $_;" for @config_modules;
+    my $conf = Config::Context->new(
+        driver => $driver,
+        string => $Config_Text{$driver},
+        match_sections => [
+            {
+                name           => 'FooMatch',
+                match_type     => 'regex',
+                merge_priority => 1,
+            },
+            {
+                name           => 'BarMatch',
+                match_type     => 'regex',
+                merge_priority => 2,
+            },
+        ],
+    );
 
-        if ($@) {
-            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
-        }
+    Hash::Merge::set_behavior('RIGHT_PRECEDENT');
 
-        my $conf = Config::Context->new(
-            driver => $driver,
-            string => $Config_Text{$driver},
-            match_sections => [
-                {
-                    name           => 'FooMatch',
-                    match_type     => 'regex',
-                    merge_priority => 1,
-                },
-                {
-                    name           => 'BarMatch',
-                    match_type     => 'regex',
-                    merge_priority => 2,
-                },
-            ],
-        );
+    my %config;
 
-        Hash::Merge::set_behavior('RIGHT_PRECEDENT');
+    %config = $conf->context('abcd');
+    # [Section] match (chars): value
+    # [Foo] c(2): 3 * reversed, so this one wins
+    # [Foo] a(4): 1
+    # [Bar] d(1): 4
+    # [Bar] b(3): 2
 
-        my %config;
+    is($config{'sect'},    'c',         "$driver: [abcd] sect:    c");
+    is($config{'val1'},    3,           "$driver: [abcd] val1:    3");
+    is($config{'secta'},   1,           "$driver: [abcd] secta:   1");
+    is($config{'sectb'},   1,           "$driver: [abcd] sectb:   1");
+    is($config{'sectc'},   1,           "$driver: [abcd] sectc:   1");
+    is($config{'sectd'},   1,           "$driver: [abcd] sectd:   1");
+    ok(!exists $config{'secte'},        "$driver: [abcd] secte:   not present");
 
-        %config = $conf->context('abcd');
-        # [Section] match (chars): value
-        # [Foo] c(2): 3 * reversed, so this one wins
-        # [Foo] a(4): 1
-        # [Bar] d(1): 4
-        # [Bar] b(3): 2
+    %config = $conf->context('a');
+    # [Section] match (chars): value
+    # [Foo] a(1): 1
+    #
+    is($config{'sect'},    'a',         "$driver: [a] sect:    a");
+    is($config{'val1'},    1,           "$driver: [a] val1:    1");
+    is($config{'secta'},   1,           "$driver: [a] secta:   1");
+    ok(!exists $config{'sectb'},        "$driver: [a] sectb:   not present");
+    ok(!exists $config{'sectc'},        "$driver: [a] sectc:   not present");
+    ok(!exists $config{'sectd'},        "$driver: [a] sectd:   not present");
+    ok(!exists $config{'secte'},        "$driver: [a] secte:   not present");
 
-        is($config{'sect'},    'c',         "$driver: [abcd] sect:    c");
-        is($config{'val1'},    3,           "$driver: [abcd] val1:    3");
-        is($config{'secta'},   1,           "$driver: [abcd] secta:   1");
-        is($config{'sectb'},   1,           "$driver: [abcd] sectb:   1");
-        is($config{'sectc'},   1,           "$driver: [abcd] sectc:   1");
-        is($config{'sectd'},   1,           "$driver: [abcd] sectd:   1");
-        ok(!exists $config{'secte'},        "$driver: [abcd] secte:   not present");
+    %config = $conf->context('cad');
+    # [Section] match (chars): value
+    # [Foo] a(2): 1 * reversed, so this one wins
+    # [Foo] c(3): 3
+    # [Bar] d(1): 4
+    is($config{'sect'},    'a',         "$driver: [cad] sect:    a");
+    is($config{'val1'},    1,           "$driver: [cad] val1:    1");
+    is($config{'secta'},   1,           "$driver: [cad] secta:   1");
+    ok(!exists $config{'sectb'},        "$driver: [cad] sectb:   not present");
+    is($config{'sectc'},   1,           "$driver: [cad] sectc:   1");
+    is($config{'sectd'},   1,           "$driver: [cad] sectd:   1");
+    ok(!exists $config{'secte'},        "$driver: [cad] secte:   not present");
+}
 
-        %config = $conf->context('a');
-        # [Section] match (chars): value
-        # [Foo] a(1): 1
-        #
-        is($config{'sect'},    'a',         "$driver: [a] sect:    a");
-        is($config{'val1'},    1,           "$driver: [a] val1:    1");
-        is($config{'secta'},   1,           "$driver: [a] secta:   1");
-        ok(!exists $config{'sectb'},        "$driver: [a] sectb:   not present");
-        ok(!exists $config{'sectc'},        "$driver: [a] sectc:   not present");
-        ok(!exists $config{'sectd'},        "$driver: [a] sectd:   not present");
-        ok(!exists $config{'secte'},        "$driver: [a] secte:   not present");
-
-        %config = $conf->context('cad');
-        # [Section] match (chars): value
-        # [Foo] a(2): 1 * reversed, so this one wins
-        # [Foo] c(3): 3
-        # [Bar] d(1): 4
-        is($config{'sect'},    'a',         "$driver: [cad] sect:    a");
-        is($config{'val1'},    1,           "$driver: [cad] val1:    1");
-        is($config{'secta'},   1,           "$driver: [cad] secta:   1");
-        ok(!exists $config{'sectb'},        "$driver: [cad] sectb:   not present");
-        is($config{'sectc'},   1,           "$driver: [cad] sectc:   1");
-        is($config{'sectd'},   1,           "$driver: [cad] sectd:   1");
-        ok(!exists $config{'secte'},        "$driver: [cad] secte:   not present");
+SKIP: {
+    if (test_driver_prereqs('ConfigGeneral')) {
+        runtests('ConfigGeneral');
     }
+    else {
+        skip "Config::General not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('ConfigScoped')) {
+        runtests('ConfigScoped');
+    }
+    else {
+        skip "Config::Scoped not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('XMLSimple')) {
+        runtests('XMLSimple');
+    }
+    else {
+        skip "XML::Simple, XML::SAX or XML::Filter::XInclude not installed", $Per_Driver_Tests;
+    }
+}
+
+sub test_driver_prereqs {
+    my $driver = shift;
+    my $driver_module = 'Config::Context::' . $driver;
+    eval "require $driver_module;";
+    die $@ if $@;
+
+    eval "require $driver_module;";
+    my @required_modules = $driver_module->config_modules;
+
+    foreach (@required_modules) {
+        eval "require $_;";
+        if ($@) {
+            return;
+        }
+    }
+    return 1;
+
 }
 

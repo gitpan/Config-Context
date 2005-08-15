@@ -2,7 +2,8 @@
 use strict;
 use warnings;
 
-use Test::More 'no_plan';
+use Test::More 'tests' => 9;
+my $Per_Driver_Tests = 3;
 
 use Config::Context;
 
@@ -92,50 +93,83 @@ $Config_Text{'XMLSimple'} = <<'EOF';
   </opt>
 EOF
 
-foreach my $driver (keys %Config_Text) {
-    SKIP: {
+sub runtests {
+    my $driver = shift;
 
-        my $driver_module = 'Config::Context::' . $driver;
-        eval "require $driver_module;";
-        my @config_modules = $driver_module->config_modules;
-        eval "require $_;" for @config_modules;
+    my $conf = Config::Context->new(
+        driver => $driver,
+        string => $Config_Text{$driver},
+        match_sections => [
+            {
+                name         => 'Story',
+                match_type   => 'substring',
+                section_type => 'story',
+            },
+            {
+                name         => 'Location',
+                match_type   => 'path',
+                section_type => 'path',
+            },
+        ],
+        nesting_depth => 2,
+    );
 
-        if ($@) {
-            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
-        }
+    my $config = $conf->context(
+            story => 'Wolf in Sheep\'s Clothing',
+            path  => '/aesop/wolf-in-sheeps-clothing',
+    );
 
-        my $conf = Config::Context->new(
-            driver => $driver,
-            string => $Config_Text{$driver},
-            match_sections => [
-                {
-                    name         => 'Story',
-                    match_type   => 'substring',
-                    section_type => 'story',
-                },
-                {
-                    name         => 'Location',
-                    match_type   => 'path',
-                    section_type => 'path',
-                },
-            ],
-            nesting_depth => 2,
-        );
+    my $expected = {
+        'antagonist' => 'Big Bad Wolf',
+        'moral'      => 'appearances are deceptive'
+    };
 
-        my $config = $conf->context(
-                story => 'Wolf in Sheep\'s Clothing',
-                path  => '/aesop/wolf-in-sheeps-clothing',
-        );
+    ok(scalar(keys %$config) == 2,                        "$driver: keys");
+    is($config->{'antagonist'}, 'Big Bad Wolf',           "$driver: antagonist");
+    is($config->{'moral'}, 'appearances are deceptive',   "$driver: moral");
+}
 
-        my $expected = {
-            'antagonist' => 'Big Bad Wolf',
-            'moral'      => 'appearances are deceptive'
-        };
-
-        ok(scalar(keys %$config) == 2,                        "$driver: keys");
-        is($config->{'antagonist'}, 'Big Bad Wolf',           "$driver: antagonist");
-        is($config->{'moral'}, 'appearances are deceptive',   "$driver: moral");
+SKIP: {
+    if (test_driver_prereqs('ConfigGeneral')) {
+        runtests('ConfigGeneral');
+    }
+    else {
+        skip "Config::General not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('ConfigScoped')) {
+        runtests('ConfigScoped');
+    }
+    else {
+        skip "Config::Scoped not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('XMLSimple')) {
+        runtests('XMLSimple');
+    }
+    else {
+        skip "XML::Simple, XML::SAX or XML::Filter::XInclude not installed", $Per_Driver_Tests;
     }
 }
 
+sub test_driver_prereqs {
+    my $driver = shift;
+    my $driver_module = 'Config::Context::' . $driver;
+    eval "require $driver_module;";
+    die $@ if $@;
+
+    eval "require $driver_module;";
+    my @required_modules = $driver_module->config_modules;
+
+    foreach (@required_modules) {
+        eval "require $_;";
+        if ($@) {
+            return;
+        }
+    }
+    return 1;
+
+}
 

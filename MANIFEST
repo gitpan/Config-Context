@@ -1,17 +1,20 @@
 Build.PL
-Makefile.PL
 Changes
-MANIFEST
-META.yml # Will be created by "make dist"
-README
-TODO
-misc/makedocs.pl
-misc/style.css
-misc/module-starter-opts.txt
 lib/Config/Context.pm
 lib/Config/Context/ConfigGeneral.pm
 lib/Config/Context/ConfigScoped.pm
 lib/Config/Context/XMLSimple.pm
+Makefile.PL
+MANIFEST			This list of files
+MANIFEST.SKIP
+META.yml
+misc/dist
+misc/makedocs.pl
+misc/module-starter-opts.txt
+misc/notes.txt
+misc/prove_without_modules.pl
+misc/style.css
+README
 t/00-load-and-usage.t
 t/01-lower_case_names.t
 t/02-substring.t
@@ -29,5 +32,11 @@ t/13-nesting.t
 t/14-nesting_pod_example.t
 t/15-file-caching.t
 t/16-includes.t
-t/pod.t
 t/pod-coverage.t
+t/pod.t
+t/skip_lib/skip_config_general/Config/General.pm
+t/skip_lib/skip_config_scoped/Config/Scoped.pm
+t/skip_lib/skip_xml_simple+config_scoped/Config/Scoped.pm
+t/skip_lib/skip_xml_simple+config_scoped/XML/Simple.pm
+t/skip_lib/skip_xml_simple/XML/Simple.pm
+TODO

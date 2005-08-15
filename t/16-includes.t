@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use Config::Context;
 use Cwd;
-use Test::More 'no_plan';
+use Test::More 'tests' => 39;
+my $Per_Driver_Tests = 13;
 
 my $Config_File            = 't/testconf.conf';
 my $Containing_Config_File = 't/testconf-container.conf';
@@ -165,83 +166,129 @@ EOF
 
 
 
-foreach my $driver (keys %Containing_Conf) {
+sub runtests {
+    my $driver = shift;
+
+    my $driver_module = 'Config::Context::' . $driver;
+    eval "require $driver_module;";
+    my @config_modules = $driver_module->config_modules;
+    eval "require $_;" for @config_modules;
+
+    if ($@) {
+        skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
+    }
+
+    write_config($Containing_Config_File, $Containing_Conf{$driver});
+    write_config($Config_File,            $Inner_Conf{$driver});
+
+    Config::Context->clear_file_cache();
+
+    my $conf = Config::Context->new(
+        driver             => $driver,
+        file               => $Containing_Config_File,
+        match_sections     => [
+            {
+                name         => 'section',
+            },
+            {
+                name         => 'nested',
+            },
+
+        ]
+    );
+
+    my %config = $conf->raw;
+
+    is($config{'section'}{'quux'}{'quux'},                             'inner',  "$driver: quux/quux");
+    is($config{'section'}{'quux'}{'nested'}{'worble'}{'worble'},       'inner',  "$driver: quux/nested/worble/worble");
+
+
+
+    is($config{'section'}{'foo'}{'foo'},                               'outer',  "$driver: foo/foo");
+    is($config{'section'}{'foo'}{'nested'}{'boom'}{'boom'},            'outer',  "$driver: foo/nested/boom/boom");
+    is($config{'section'}{'foo'}{'nested'}{'boom'}{'outer_boom'},      'true',   "$driver: foo/nested/boom/outer_boom");
+
+
+    is($config{'section'}{'bar'}{'bar'},                               'inner',  "$driver: bar/bar");
+
+
+    is($config{'section'}{'bar'}{'nested'}{'bam'}{'inner_bam'},        'true',   "$driver: bar/nested/bam/inner_bam");
+    is($config{'section'}{'quux'}{'nested'}{'worble'}{'inner_worble'}, 'true',   "$driver: quux/quux/worble/inner_worble");
+    is($config{'section'}{'bar'}{'inner_bar'},                         'true',   "$driver: bar/inner_bar");
+
+    my @files = sort @{ $conf->files };
+
+    my @expected_files = sort(
+        Cwd::abs_path($Containing_Config_File),
+        Cwd::abs_path($Config_File),
+    );
 
     SKIP: {
-
-        my $driver_module = 'Config::Context::' . $driver;
-        eval "require $driver_module;";
-        my @config_modules = $driver_module->config_modules;
-        eval "require $_;" for @config_modules;
-
-        if ($@) {
-            skip "prereqs of $driver (".(join ', ', @config_modules).") not installed", 36;
+        if ($driver eq 'ConfigGeneral' and !$Files_Method_Supported) {
+            skip "Installed version of Config::General doesn't support 'files'", 1;
         }
-
-        write_config($Containing_Config_File, $Containing_Conf{$driver});
-        write_config($Config_File,            $Inner_Conf{$driver});
-
-        Config::Context->clear_file_cache();
-
-        my $conf = Config::Context->new(
-            driver             => $driver,
-            file               => $Containing_Config_File,
-            match_sections     => [
-                {
-                    name         => 'section',
-                },
-                {
-                    name         => 'nested',
-                },
-
-            ]
-        );
-
-        my %config = $conf->raw;
-
-        is($config{'section'}{'quux'}{'quux'},                             'inner',  "$driver: quux/quux");
-        is($config{'section'}{'quux'}{'nested'}{'worble'}{'worble'},       'inner',  "$driver: quux/nested/worble/worble");
-
-
-
-        is($config{'section'}{'foo'}{'foo'},                               'outer',  "$driver: foo/foo");
-        is($config{'section'}{'foo'}{'nested'}{'boom'}{'boom'},            'outer',  "$driver: foo/nested/boom/boom");
-        is($config{'section'}{'foo'}{'nested'}{'boom'}{'outer_boom'},      'true',   "$driver: foo/nested/boom/outer_boom");
-
-
-        is($config{'section'}{'bar'}{'bar'},                               'inner',  "$driver: bar/bar");
-
-
-        is($config{'section'}{'bar'}{'nested'}{'bam'}{'inner_bam'},        'true',   "$driver: bar/nested/bam/inner_bam");
-        is($config{'section'}{'quux'}{'nested'}{'worble'}{'inner_worble'}, 'true',   "$driver: quux/quux/worble/inner_worble");
-        is($config{'section'}{'bar'}{'inner_bar'},                         'true',   "$driver: bar/inner_bar");
-
-        my @files = sort @{ $conf->files };
-
-        my @expected_files = sort(
-            Cwd::abs_path($Containing_Config_File),
-            Cwd::abs_path($Config_File),
-        );
-
-        SKIP: {
-            if ($driver eq 'ConfigGeneral' and !$Files_Method_Supported) {
-                skip "Installed version of Config::General doesn't support 'files'", 1;
-            }
-            ok(eq_array(\@files, \@expected_files), 'files');
+        ok(eq_array(\@files, \@expected_files), 'files');
+    }
+    SKIP: {
+        if ($driver eq 'ConfigScoped') {
+            skip "hashes do not merge with ConfigScoped", 3;
         }
-        SKIP: {
-            if ($driver eq 'ConfigScoped') {
-                skip "hashes do not merge with ConfigScoped", 3;
-            }
-            else {
-                is($config{'section'}{'bar'}{'outer_bar'},                         'true',   "$driver: bar/outer_bar");
-                is($config{'section'}{'bar'}{'nested'}{'bam'}{'bam'},              'outer',  "$driver: bar/nested/bam/bam");
-                is($config{'section'}{'bar'}{'nested'}{'bam'}{'outer_bam'},        'true',   "$driver: bar/nested/bam/outer_bam");
-            }
+        else {
+            is($config{'section'}{'bar'}{'outer_bar'},                         'true',   "$driver: bar/outer_bar");
+            is($config{'section'}{'bar'}{'nested'}{'bam'}{'bam'},              'outer',  "$driver: bar/nested/bam/bam");
+            is($config{'section'}{'bar'}{'nested'}{'bam'}{'outer_bam'},        'true',   "$driver: bar/nested/bam/outer_bam");
         }
     }
 
 }
 
+SKIP: {
+    if (test_driver_prereqs('ConfigGeneral')) {
+        runtests('ConfigGeneral');
+    }
+    else {
+        skip "Config::General not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('ConfigScoped')) {
+        runtests('ConfigScoped');
+    }
+    else {
+        skip "Config::Scoped not installed", $Per_Driver_Tests;
+    }
+}
+SKIP: {
+    if (test_driver_prereqs('XMLSimple')) {
+        runtests('XMLSimple');
+    }
+    else {
+        skip "XML::Simple, XML::SAX or XML::Filter::XInclude not installed", $Per_Driver_Tests;
+    }
+}
+
+sub test_driver_prereqs {
+    my $driver = shift;
+    my $driver_module = 'Config::Context::' . $driver;
+    eval "require $driver_module;";
+    die $@ if $@;
+
+    eval "require $driver_module;";
+    my @required_modules = $driver_module->config_modules;
+
+    foreach (@required_modules) {
+        eval "require $_;";
+        if ($@) {
+            return;
+        }
+    }
+    return 1;
+
+}
+
+
+
 unlink $Containing_Config_File;
 unlink $Config_File;
+
+
