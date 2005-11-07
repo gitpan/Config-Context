@@ -52,7 +52,7 @@ $Config_Text{'ConfigScoped'} = <<'EOF';
 EOF
 
 $Config_Text{'XMLSimple'} = <<'EOF';
-   <opt>
+<opt>
     <Site name="BOOKSHOP">
         <the_site>bookshop site</the_site>
         <Location name="/admin">

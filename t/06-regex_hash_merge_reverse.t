@@ -72,8 +72,7 @@ $Config_Text{'ConfigScoped'} = <<EOF;
 EOF
 
 $Config_Text{'XMLSimple'} = <<EOF;
-
-    <opt>
+<opt>
      <FooMatch name="a.*">
          <sect>a</sect>
          <val1>1</val1>

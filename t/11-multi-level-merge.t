@@ -68,7 +68,7 @@ $Config_Text{'ConfigScoped'} = <<'EOF';
 EOF
 
 $Config_Text{'XMLSimple'} = <<'EOF';
-   <opt>
+<opt>
     <private_area>0</private_area>
     <client_area>0</client_area>
 

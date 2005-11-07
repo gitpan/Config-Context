@@ -5,6 +5,7 @@ use Config::Context;
 use Cwd;
 use Test::More 'tests' => 39;
 my $Per_Driver_Tests = 13;
+my $PerlIO_Available;
 
 my $Config_File            = 't/testconf.conf';
 my $Containing_Config_File = 't/testconf-container.conf';
@@ -27,14 +28,13 @@ eval { require Config::General; };
 my $Files_Method_Supported = 1;
 my $CG_Included_File;
 
-if ($Config::General::VERSION >= 2.28) {
+if (($Config::General::VERSION || 0) >= 2.28) {
     $CG_Included_File = $Included_File;
 }
 else {
     $Files_Method_Supported = 0;
     $CG_Included_File = $Config_File;
 }
-
 
 my (%Inner_Conf, %Containing_Conf);
 
@@ -123,7 +123,7 @@ EOF
 
 
 $Inner_Conf{'XMLSimple'} = <<EOF;
-        <opt>
+<opt>
         <section name="quux">
            <quux>inner</quux>
            <nested name="worble">
@@ -141,7 +141,7 @@ $Inner_Conf{'XMLSimple'} = <<EOF;
         </opt>
 EOF
 $Containing_Conf{'XMLSimple'} = <<EOF;
-      <opt>
+<opt>
        <xi:include href="$Included_File" xmlns:xi="http://www.w3.org/2001/XInclude" />
         <section name="foo">
            <foo>outer</foo>
@@ -194,7 +194,14 @@ sub runtests {
                 name         => 'nested',
             },
 
-        ]
+        ],
+        driver_options => {
+            ConfigScoped => {
+                warnings => {
+                    permissions => 'off',
+                },
+            },
+        },
     );
 
     my %config = $conf->raw;
@@ -227,7 +234,17 @@ sub runtests {
         if ($driver eq 'ConfigGeneral' and !$Files_Method_Supported) {
             skip "Installed version of Config::General doesn't support 'files'", 1;
         }
-        ok(eq_array(\@files, \@expected_files), 'files');
+
+        # use lower-case comparisons to be compatible with case-insensitive filesystems
+        my @lc_files          = map { lc } @files;
+        my @lc_expected_files = map { lc } @expected_files;
+
+        ok(eq_array(\@lc_files, \@lc_expected_files), 'files')
+           or diag( "got files: \n" . (join "\t\n", @lc_files)
+                  . "\n"
+                  . "expected: \n" . (join "\t\n", @lc_expected_files)
+                  . "\n"
+              );
     }
     SKIP: {
         if ($driver eq 'ConfigScoped') {

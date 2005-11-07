@@ -28,7 +28,7 @@ $Config_Text{'ConfigScoped'} = <<'EOF';
 EOF
 
 $Config_Text{'XMLSimple'} = <<'EOF';
-   <opt>
+<opt>
     <Module>0</Module>
     <Match name="\.pm$">
         <Module>1</Module>

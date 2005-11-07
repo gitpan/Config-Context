@@ -54,8 +54,7 @@ $Config_Text{'ConfigScoped'} = <<EOF;
 EOF
 
 $Config_Text{'XMLSimple'} = <<EOF;
-
-    <opt>
+<opt>
      <Path name="/foo">
          <val>1</val>
          <sect>foo</sect>

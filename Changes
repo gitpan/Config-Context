@@ -1,5 +1,30 @@
 Revision history for Config-Context
 
+0.10    2005-Nov-06
+        - there are no changes to the Config::Context itself in this
+          release.  The only changes are to the test suite.
+        - this version should pass all its tests under Cygwin and native Windows
+        - fixed test failures when running the distribution on a remote
+          filesystem where the timestamp of created files cannot be
+          changed to the current time
+        - fixed problem in one of the tests that loaded a writable
+          Config::Scoped file under windows
+        - fixed warnings about test XML files not having explicit
+          character encodings (in newer versions of SAX::Parser::PurePerl)
+        - fixed a test error in includes.t that made it fail on
+          case-insensitive filesystems
+        - fixed test failures on some platforms where Cwd::abs_path
+          fails on a non-existent file
+        - fixed some bugs in file-caching.t
+           - in test "Modify before (short) statconfig: Caching ON: objects identical"
+             - wrong configs were being compared
+             - cleared the config cache before test
+        - fixed warning in includes.t when tests are run without Config::General installed
+        - changed misc/prove_without_modules.pl to misc/prove_prereqs.pl
+        - changed t/skip_lib to t/prereq_scenarios
+
+
+
 0.09    2005-Aug-12
         - fixed a bug in the tests for testing module prerequisites
         - it is now possible to run the test suite while simulating the

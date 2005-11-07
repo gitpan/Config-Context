@@ -12,7 +12,7 @@ misc/dist
 misc/makedocs.pl
 misc/module-starter-opts.txt
 misc/notes.txt
-misc/prove_without_modules.pl
+misc/prove_prereqs.pl
 misc/style.css
 README
 t/00-load-and-usage.t
@@ -34,9 +34,10 @@ t/15-file-caching.t
 t/16-includes.t
 t/pod-coverage.t
 t/pod.t
-t/skip_lib/skip_config_general/Config/General.pm
-t/skip_lib/skip_config_scoped/Config/Scoped.pm
-t/skip_lib/skip_xml_simple+config_scoped/Config/Scoped.pm
-t/skip_lib/skip_xml_simple+config_scoped/XML/Simple.pm
-t/skip_lib/skip_xml_simple/XML/Simple.pm
+t/prereq_scenarios/skip_config_general/Config/General.pm
+t/prereq_scenarios/skip_config_scoped/Config/Scoped.pm
+t/prereq_scenarios/skip_xml_simple+config_scoped/Config/Scoped.pm
+t/prereq_scenarios/skip_xml_simple+config_scoped/XML/Simple.pm
+t/prereq_scenarios/skip_xml_simple/XML/Simple.pm
+test.txt
 TODO

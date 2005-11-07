@@ -66,7 +66,7 @@ $Config_Text{'ConfigScoped'} = <<'EOF';
 EOF
 
 $Config_Text{'XMLSimple'} = <<'EOF';
-   <opt>
+<opt>
     <Story name="Three Little Pigs">
         <antagonist>Big Bad Wolf</antagonist>
         <moral>obey the protestant work ethic</moral>

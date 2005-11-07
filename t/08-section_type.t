@@ -105,8 +105,7 @@ EOF
 
 
 $Config_Text{'XMLSimple'} = <<'EOF';
-
-   <opt>
+<opt>
     <Module name="Foo">
         <val>1</val>
         <sect>_Module_Foo</sect>

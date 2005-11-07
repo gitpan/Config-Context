@@ -11,16 +11,16 @@ To run the test suite multiple times in a row, each tie multiple times
 
     $ perl misc/prove_without_modules.pl t/*.t
 
-To add a new set of absent modules, make a subdir under t/skip_lib, and
+To add a new set of absent modules, make a subdir under t/prereq_scenarios, and
 add a dummy perl module for every module you want to skip.  This file
 should be empty.  For instance if you wanted to simulate the absense of
 XML::Complicated and Config::Obscure, you would do the following:
 
-    $ mkdir t/skip_lib/skip_xc+co
-    $ mkdir t/skip_lib/skip_xc+co/XML
-    $ touch t/skip_lib/skip_xc+co/XML/Complicated.pm
-    $ mkdir t/skip_lib/skip_xc+co/Config
-    $ touch t/skip_lib/skip_xc+co/Config/Obscure.pm
+    $ mkdir t/prereq_scenarios/skip_xc+co
+    $ mkdir t/prereq_scenarios/skip_xc+co/XML
+    $ touch t/prereq_scenarios/skip_xc+co/XML/Complicated.pm
+    $ mkdir t/prereq_scenarios/skip_xc+co/Config
+    $ touch t/prereq_scenarios/skip_xc+co/Config/Obscure.pm
 
 Finally, add this directory to the @Scenarios array below.
 
@@ -45,10 +45,10 @@ associated with that module.
 =cut
 
 my @Scenarios = qw(
-    t/skip_lib/skip_config_general
-    t/skip_lib/skip_config_scoped
-    t/skip_lib/skip_xml_simple
-    t/skip_lib/skip_xml_simple+config_scoped
+    t/prereq_scenarios/skip_config_general
+    t/prereq_scenarios/skip_config_scoped
+    t/prereq_scenarios/skip_xml_simple
+    t/prereq_scenarios/skip_xml_simple+config_scoped
 );
 
 ###################################################################
@@ -61,36 +61,37 @@ unless (@ARGV) {
 
 my %Skip_Modules;
 my $errors;
-foreach my $skip_lib_dir (@Scenarios) {
-    if (!-d $skip_lib_dir) {
+foreach my $prereq_scenarios_dir (@Scenarios) {
+    if (!-d $prereq_scenarios_dir) {
         $errors = 1;
-        warn "Skip lib dir does not exist: $skip_lib_dir\n";
+        warn "Skip lib dir does not exist: $prereq_scenarios_dir\n";
         next;
     }
     my @modules;
     find(sub {
         return unless -f;
         my $dir = "$File::Find::dir/$_";
-        $dir =~ s/^\Q$skip_lib_dir\E//;
+        $dir =~ s/^\Q$prereq_scenarios_dir\E//;
         $dir =~ s/\.pm$//;
         $dir =~ s{^/}{};
         $dir =~ s{/}{::}g;
         push @modules, $dir;
-    }, $skip_lib_dir);
-    $Skip_Modules{$skip_lib_dir} = \@modules;
+    }, $prereq_scenarios_dir);
+    $Skip_Modules{$prereq_scenarios_dir} = \@modules;
 }
 die "Terminating." if $errors;
 
-foreach my $skip_lib_dir (@Scenarios) {
-    my $modules = join ', ', sort @{ $Skip_Modules{$skip_lib_dir} };
+foreach my $prereq_scenarios_dir (@Scenarios) {
+    my $modules = join ', ', sort @{ $Skip_Modules{$prereq_scenarios_dir} };
     $modules ||= 'none';
     print "\n##############################################################\n";
-    print "Running tests.  Skipping Modules: $modules\n";
-    my @prove_command = ('prove', '-Ilib', "-I$skip_lib_dir", @ARGV);
+    print "Running tests.  Old (or absent) modules in this scenario:\n";
+    print "$modules\n";
+    my @prove_command = ('prove', '-Ilib', "-I$prereq_scenarios_dir", @ARGV);
     system(@prove_command) && do {
         die <<EOF;
 ##############################################################
-One or more tests failed while skipping these modules:
+One or more tests failed.  The old or absent modules were:
     $modules
 
 The command was:
@@ -121,7 +122,7 @@ fi
 echo
 echo "##############################################################"
 echo Running tests with HTML::Template not installed
-if ! prove -It/skip_lib/skip_ht -Ilib $*; then
+if ! prove -It/prereq_scenarios/skip_ht -Ilib $*; then
     echo
     echo There were errors!  Terminating.
     exit;
@@ -130,7 +131,7 @@ fi
 echo
 echo "##############################################################"
 echo Running tests with HTML::Template::Pluggable not installed
-if ! prove -It/skip_lib/skip_htp -Ilib $*; then
+if ! prove -It/prereq_scenarios/skip_htp -Ilib $*; then
     echo
     echo There were errors!  Terminating.
     exit;
@@ -139,7 +140,7 @@ fi
 echo
 echo "##############################################################"
 echo Running tests with HTML::Template::Expr not installed
-if ! prove -It/skip_lib/skip_hte -Ilib $*; then
+if ! prove -It/prereq_scenarios/skip_hte -Ilib $*; then
     echo
     echo There were errors!  Terminating.
     exit;
@@ -148,7 +149,7 @@ fi
 echo
 echo "##############################################################"
 echo Running tests with Template not installed
-if ! prove -It/skip_lib/skip_tt -Ilib $*; then
+if ! prove -It/prereq_scenarios/skip_tt -Ilib $*; then
     echo
     echo There were errors!  Terminating.
     exit;
@@ -157,7 +158,7 @@ fi
 echo
 echo "##############################################################"
 echo Running tests with Petal not installed
-if ! prove -It/skip_lib/skip_petal -Ilib $*; then
+if ! prove -It/prereq_scenarios/skip_petal -Ilib $*; then
     echo
     echo There were errors!  Terminating.
     exit;
@@ -166,7 +167,7 @@ fi
 echo
 echo "##############################################################"
 echo Running tests with no templating modules installed
-if ! prove -It/skip_lib/skip_ht+hte+htp+petal+template -Ilib $*; then
+if ! prove -It/prereq_scenarios/skip_ht+hte+htp+petal+template -Ilib $*; then
     echo
     echo There were errors!  Terminating.
     exit;
@@ -175,7 +176,7 @@ fi
 echo
 echo "##############################################################"
 echo Running tests with only HTML::Template installed
-if ! prove -It/skip_lib/skip_hte+htp+petal+tt -Ilib $*; then
+if ! prove -It/prereq_scenarios/skip_hte+htp+petal+tt -Ilib $*; then
     echo
     echo There were errors!  Terminating.
     exit;

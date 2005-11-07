@@ -111,7 +111,7 @@ $Config_Text{'ConfigScoped'} = <<'EOF';
 EOF
 
 $Config_Text{'XMLSimple'} = <<'EOF';
-    <opt>
+<opt>
      <Perl_Module>0</Perl_Module>
      <Installed_Module>0</Installed_Module>
      <Core_Module>0</Core_Module>

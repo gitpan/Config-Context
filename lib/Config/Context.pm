@@ -14,11 +14,11 @@ Config::Context - Add C<< <Location> >> and C<< <LocationMatch> >> style context
 
 =head1 VERSION
 
-Version 0.09
+Version 0.10
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 

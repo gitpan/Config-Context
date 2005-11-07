@@ -62,8 +62,7 @@ $Config_Text{'ConfigScoped'} = <<EOF;
 EOF
 
 $Config_Text{'XMLSimple'} = <<EOF;
-
-    <opt>
+<opt>
      <Module name="Foo">
          <val>1</val>
          <sect>foo</sect>

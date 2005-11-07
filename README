@@ -4,7 +4,7 @@ NAME
     XML::Simple and Config::Scoped
 
 VERSION
-    Version 0.09
+    Version 0.10
 
 SYNOPSIS
   Apache-style configs (via Config::General)

@@ -83,8 +83,7 @@ $Config_Text{'ConfigScoped'} = <<'EOF';
 
 EOF
 $Config_Text{'XMLSimple'} = <<'EOF';
-
-    <opt>
+<opt>
     <SectA name="bbb">
         <testval_a>4</testval_a>
         <testval_b>4</testval_b>
